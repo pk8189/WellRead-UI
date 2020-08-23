@@ -8,21 +8,21 @@
 export default {
   dev: {
     '/api/': {
-      target: 'http://127.0.0.1:8000/api/',
+      target: 'http://127.0.0.1:8000',
       changeOrigin: true,
       pathRewrite: { '^': '' },
     },
   },
   test: {
     '/api/': {
-      target: 'https://preview.pro.ant.design',
+      target: 'http://127.0.0.1:8000',
       changeOrigin: true,
       pathRewrite: { '^': '' },
     },
   },
   pre: {
     '/api/': {
-      target: 'your pre url',
+      target: 'http://127.0.0.1:8000',
       changeOrigin: true,
       pathRewrite: { '^': '' },
     },

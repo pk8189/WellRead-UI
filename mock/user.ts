@@ -13,7 +13,7 @@ const getAccess = () => {
 };
 
 export default {
-  'GET /api/currentUser': (req: Request, res: Response) => {
+  'GET /mock/api/currentUser': (req: Request, res: Response) => {
     if (!getAccess()) {
       res.status(401).send({
         data: {
@@ -77,7 +77,7 @@ export default {
       phone: '0752-268888888',
     });
   },
-  'GET /api/users': [
+  'GET /mock/api/users': [
     {
       key: '1',
       name: 'John Brown',
@@ -97,7 +97,7 @@ export default {
       address: 'Sidney No. 1 Lake Park',
     },
   ],
-  'POST /api/login/account': (req: Request, res: Response) => {
+  'POST /mock/api/login/account': (req: Request, res: Response) => {
     const { password, username, type } = req.body;
     if (password === 'ant.design' && username === 'admin') {
       res.send({
@@ -133,14 +133,14 @@ export default {
     });
     access = 'guest';
   },
-  'GET /api/login/outLogin': (req: Request, res: Response) => {
+  'GET /mock/api/login/outLogin': (req: Request, res: Response) => {
     access = '';
     res.send({ data: {}, success: true });
   },
-  'POST /api/register': (req: Request, res: Response) => {
+  'POST /mock/api/register': (req: Request, res: Response) => {
     res.send({ status: 'ok', currentAuthority: 'user', success: true });
   },
-  'GET /api/500': (req: Request, res: Response) => {
+  'GET /mock/api/500': (req: Request, res: Response) => {
     res.status(500).send({
       timestamp: 1513932555104,
       status: 500,
@@ -149,7 +149,7 @@ export default {
       path: '/base/category/list',
     });
   },
-  'GET /api/404': (req: Request, res: Response) => {
+  'GET /mock/api/404': (req: Request, res: Response) => {
     res.status(404).send({
       timestamp: 1513932643431,
       status: 404,
@@ -158,7 +158,7 @@ export default {
       path: '/base/category/list/2121212',
     });
   },
-  'GET /api/403': (req: Request, res: Response) => {
+  'GET /mock/api/403': (req: Request, res: Response) => {
     res.status(403).send({
       timestamp: 1513932555104,
       status: 403,
@@ -167,7 +167,7 @@ export default {
       path: '/base/category/list',
     });
   },
-  'GET /api/401': (req: Request, res: Response) => {
+  'GET /mock/api/401': (req: Request, res: Response) => {
     res.status(401).send({
       timestamp: 1513932555104,
       status: 401,
@@ -177,5 +177,5 @@ export default {
     });
   },
 
-  'GET  /api/login/captcha': getFakeCaptcha,
+  'GET  /mock/api/login/captcha': getFakeCaptcha,
 };

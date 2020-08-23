@@ -1,13 +1,13 @@
 import { request } from 'umi';
-
-export async function query() {
-  return request<API.CurrentUser[]>('/api/users');
-}
+import { getAuthHeader } from './endpoints'
 
 export async function queryCurrent() {
-  return request<API.CurrentUser>('/api/currentUser');
+  return request<API.CurrentUser>('/api/user/', {
+    method: 'GET',
+    headers: { ...getAuthHeader() },
+  });
 }
 
 export async function queryNotices(): Promise<any> {
-  return request<{ data: API.NoticeIconData[] }>('/api/notices');
+  return request<{ data: API.NoticeIconData[] }>('/mock/api/notices');
 }

@@ -1,16 +1,14 @@
 import { request } from 'umi';
+import { eraseCookie } from './cookies';
 
 export interface LoginParamsType {
   username: string;
   password: string;
-  mobile: string;
-  captcha: string;
-  type: string;
 }
 
-export async function fakeAccountLogin(params: LoginParamsType) {
-  console.log(params)
-  return request<API.LoginStateType>('/api/login/account', {
+export async function tokenLogin(params: LoginParamsType) {
+  return request <API.ApiRes<API.LoginStateType>> ('/api/token', {
+    requestType: 'form',
     method: 'POST',
     data: params,
   });
@@ -21,5 +19,5 @@ export async function getFakeCaptcha(mobile: string) {
 }
 
 export async function outLogin() {
-  return request('/api/login/outLogin');
+  await eraseCookie('authtoken')
 }

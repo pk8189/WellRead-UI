@@ -18,7 +18,7 @@ export default defineConfig({
   },
   locale: {
     // default zh-CN
-    default: 'zh-CN',
+    default: 'en-US',
     // default true, when it is true, will use `navigator.language` overwrite default
     antd: true,
     baseNavigator: true,
@@ -85,7 +85,7 @@ export default defineConfig({
   // @ts-ignore
   title: false,
   ignoreMomentLocale: true,
-  proxy: proxy[REACT_APP_ENV || 'dev'],
+  proxy: proxy['dev'],
   manifest: {
     basePath: '/',
   },

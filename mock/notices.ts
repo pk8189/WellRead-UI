@@ -103,5 +103,5 @@ const getNotices = (req: Request, res: Response) => {
 };
 
 export default {
-  'GET /api/notices': getNotices,
+  'GET /mock/api/notices': getNotices,
 };

@@ -1,12 +1,14 @@
+import _ from 'lodash';
 import { Alert, Checkbox, message } from 'antd';
 import React, { useState } from 'react';
 import { Link, useModel } from 'umi';
 import { getPageQuery } from '@/utils/utils';
 import logo from '@/assets/logo.png';
-import { LoginParamsType, fakeAccountLogin } from '@/services/login';
+import { LoginParamsType, tokenLogin } from '@/services/login';
 import Footer from '@/components/Footer';
 import LoginFrom from './components/Login';
 import styles from './style.less';
+import { createCookie, ONE_DAY }  from '../../../services/cookies'
 
 const { Username, Password, Submit } = LoginFrom;
 
@@ -24,9 +26,10 @@ const LoginMessage: React.FC<{
 );
 
 /**
- * 此方法会跳转到 redirect 参数所在的位置
+ * redirect
  */
-const replaceGoto = () => {
+const replaceGoto = (token: string) => {
+  createCookie('authtoken', token, ONE_DAY);
   const urlParams = new URL(window.location.href);
   const params = getPageQuery();
   let { redirect } = params as { redirect: string };
@@ -46,36 +49,31 @@ const replaceGoto = () => {
 };
 
 const Login: React.FC<{}> = () => {
-  const [userLoginState, setUserLoginState] = useState<API.LoginStateType>({});
+  const [errorState, setErrorState] = useState<API.ErrorType>({});
   const [submitting, setSubmitting] = useState(false);
 
   const { refresh } = useModel('@@initialState');
   const [autoLogin, setAutoLogin] = useState(true);
-  const [type, setType] = useState<string>('account');
 
   const handleSubmit = async (values: LoginParamsType) => {
     setSubmitting(true);
     try {
-      // 登录
-      const msg = await fakeAccountLogin({ ...values, type });
-      if (msg.status === 'ok') {
+      const msg = await tokenLogin({ ...values });
+      if (_.get(msg, 'access_token', false)) {
         message.success('Login success');
-        replaceGoto();
+        replaceGoto(msg.access_token);
         setTimeout(() => {
           refresh();
         }, 0);
         return;
       }
-      // 如果失败去设置用户错误信息
-      setUserLoginState(msg);
+      setErrorState(msg)
     } catch (error) {
       message.error('Login failed');
     }
     setSubmitting(false);
   };
-
-  const { status, type: loginType } = userLoginState;
-
+  const { detail } = errorState;
   return (
     <div className={styles.container}>
       <div className={styles.content}>
@@ -90,9 +88,9 @@ const Login: React.FC<{}> = () => {
         </div>
 
         <div className={styles.main}>
-          <LoginFrom activeKey={type} onTabChange={setType} onSubmit={handleSubmit}>
-            {status === 'error' && loginType === 'account' && !submitting && (
-            <LoginMessage content="Incorrect username or password" />
+          <LoginFrom onSubmit={handleSubmit}>
+            {detail === 'Incorrect username or password' && !submitting && (
+              <LoginMessage content={detail} />
             )}
 
             <Username

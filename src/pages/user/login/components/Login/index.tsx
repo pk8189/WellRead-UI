@@ -22,12 +22,10 @@ export interface LoginProps {
 }
 
 interface LoginType extends React.FC<LoginProps> {
-  Tab: typeof LoginTab;
+  detail: string;
   Submit: typeof LoginSubmit;
   Username: React.FunctionComponent<LoginItemProps>;
   Password: React.FunctionComponent<LoginItemProps>;
-  Mobile: React.FunctionComponent<LoginItemProps>;
-  Captcha: React.FunctionComponent<LoginItemProps>;
 }
 
 const Login: LoginType = (props) => {
@@ -109,12 +107,9 @@ const Login: LoginType = (props) => {
   );
 };
 
-Login.Tab = LoginTab;
 Login.Submit = LoginSubmit;
 
 Login.Username = LoginItem.Username;
 Login.Password = LoginItem.Password;
-Login.Mobile = LoginItem.Mobile;
-Login.Captcha = LoginItem.Captcha;
 
 export default Login;

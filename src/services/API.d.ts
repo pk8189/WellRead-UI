@@ -1,24 +1,26 @@
 declare namespace API {
 
   export interface CurrentUser {
-    avatar?: string;
-    name?: string;
-    title?: string;
-    group?: string;
-    signature?: string;
-    tags?: {
-      key: string;
-      label: string;
+    id?: number;
+    full_name?: string;
+    email?: string;
+    books?: {
+      id: string;
+      book_title: string;
+      author_name: string;
     }[];
-    userid?: string;
-    access?: 'user' | 'guest' | 'admin';
-    unreadCount?: number;
   }
 
   export interface LoginStateType {
-    status?: 'ok' | 'error';
-    type?: string;
+    access_token?: string;
+    token_type?: 'bearer';
   }
+
+  export interface ErrorType {
+    detail?: string;
+  }
+
+  export type ApiRes<T> = Result<T, ErrorType>
 
   export interface NoticeIconData {
     id: string;
