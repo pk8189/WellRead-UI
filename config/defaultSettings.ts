@@ -1,6 +1,4 @@
 import { Settings as LayoutSettings } from '@ant-design/pro-layout';
-import logo from '@/assets/logo.png';
-
 
 export default {
   navTheme: 'light',
@@ -14,7 +12,7 @@ export default {
     locale: true,
   },
   title: 'Well-Read',
-  logo: logo,
+  logo: 'logo.png',
   pwa: false,
   iconfontUrl: '',
 } as LayoutSettings & {

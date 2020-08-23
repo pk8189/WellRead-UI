@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import LoginFrom from './components/Login';
 import styles from './style.less';
 
-const { Tab, Username, Password, Submit } = LoginFrom;
+const { Username, Password, Submit } = LoginFrom;
 
 const LoginMessage: React.FC<{
   content: string;
