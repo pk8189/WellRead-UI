@@ -12,7 +12,8 @@ export default {
     locale: true,
   },
   title: 'Well-Read',
-  logo: 'logo.png',
+  //logo: 'http://%PUBLIC_URL%/logo.png',
+  logo: 'http://localhost:8001/logo.png',
   pwa: false,
   iconfontUrl: '',
 } as LayoutSettings & {
