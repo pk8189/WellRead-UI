@@ -50,8 +50,18 @@ export default defineConfig({
       path: '/books',
       name: 'Books',
       icon: 'read',
-      access: 'canAdmin',
-      component: './Books',
+      routes: [
+        {
+          name: 'My Books',
+          path: '/books/me',
+          component: './Books',
+        },
+        {
+          name: 'Add A Book',
+          path: '/books/new',
+          component: './SearchBooks',
+        },
+      ],
     },
     {
       path: '/',

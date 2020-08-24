@@ -3,6 +3,8 @@ export default {
   'menu.more-blocks': 'More Blocks',
   'menu.Home': 'Home',
   'menu.Books': 'Books',
+  'menu.Books.My Books': 'My Books',
+  'menu.Books.Add A Book': 'Add A Book',
   'menu.login': 'Login',
   'menu.register': 'Register',
   'menu.register.result': 'Register Result',
