@@ -13,7 +13,7 @@ export interface HeaderSearchProps {
   onVisibleChange?: (b: boolean) => void;
   className?: string;
   placeholder?: string;
-  options: AutoCompleteProps['options'];
+  options?: AutoCompleteProps['options'];
   defaultOpen?: boolean;
   open?: boolean;
   defaultValue?: string;

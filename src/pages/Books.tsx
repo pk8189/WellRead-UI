@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'lodash';
 import { SettingOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { Link, useModel } from 'umi';
 import { Card, Row, Col } from 'antd';
@@ -55,7 +56,7 @@ const Books: React.FC<{}> = () => {
 
   const { initialState } = useModel('@@initialState');
 
-  if (!initialState.currentUser.books.length) {
+  if (!_.get(initialState, 'currentUser.books', []).length) {
     return (
       <Row gutter={[32, 32]}>
         <Col><NewBook /></Col>
