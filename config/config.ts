@@ -52,18 +52,10 @@ export default defineConfig({
       icon: 'read',
       access: 'canAdmin',
       component: './Books',
-      routes: [
-        {
-          path: '/books/my-books',
-          name: 'My books',
-          icon: 'smile',
-          component: './Home',
-        },
-      ],
     },
     {
       path: '/',
-      redirect: '/welcome',
+      redirect: '/home',
     },
     {
       component: './404',

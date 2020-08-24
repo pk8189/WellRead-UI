@@ -1,9 +1,9 @@
 declare namespace API {
 
   export interface CurrentUser {
-    id?: number;
-    full_name?: string;
-    email?: string;
+    id: number;
+    full_name: string;
+    email: string;
     books?: {
       id: string;
       book_title: string;
