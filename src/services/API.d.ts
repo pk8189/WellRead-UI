@@ -11,6 +11,10 @@ declare namespace API {
     }[];
   }
 
+  export interface GoogleBooksQuery {
+    volumes:[]
+  }
+
   export interface LoginStateType {
     access_token?: string;
     token_type?: 'bearer';

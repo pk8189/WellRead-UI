@@ -46,7 +46,7 @@ const NewBook: React.ReactNode = () => (
     >
     <Meta
       title="Add a new book"
-      description="Search by title or author"
+      description="Search by book title"
       />
     </Card>
   </Link>
