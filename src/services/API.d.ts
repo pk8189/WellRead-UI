@@ -11,6 +11,25 @@ declare namespace API {
     }[];
   }
 
+  export interface BookRes {
+    id: Number;
+    google_books_id: String;
+    google_books_self_link: String;
+    tags: Array;
+    clubs: Array;
+    users: Array;
+    notes: Array;
+    club_tags: Array;
+  }
+
+  export interface GoogleBookRes {
+    kind: String;
+    id: String;
+    etag: String;
+    selfLink: String;
+    volumeInfo: Object;
+  }
+
   export interface GoogleBooksQuery {
     volumes:[]
   }

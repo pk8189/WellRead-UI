@@ -5,6 +5,7 @@ export default {
   'menu.Books': 'Books',
   'menu.Books.My Books': 'My Books',
   'menu.Books.Add A Book': 'Add A Book',
+  'menu.Notes': 'Notes',
   'menu.login': 'Login',
   'menu.register': 'Register',
   'menu.register.result': 'Register Result',

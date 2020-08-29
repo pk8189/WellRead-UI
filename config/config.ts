@@ -64,6 +64,12 @@ export default defineConfig({
       ],
     },
     {
+      path: '/notes',
+      name: 'Notes',
+      icon: 'edit',
+      component: './Notes'
+    },
+    {
       path: '/',
       redirect: '/home',
     },
