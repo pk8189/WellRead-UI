@@ -1,12 +1,14 @@
 import React, { useEffect, useState, } from 'react';
 import _ from 'lodash';
-import { Button, Card, Modal, message, Form, Select, Switch } from 'antd';
+import { Button, Card, Modal, message, Form, Select, Switch, Tag, Input } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import ReactQuill from 'react-quill';
 import Delta from 'quill-delta';
 import { PageContainer } from '@ant-design/pro-layout';
 
 import { getGoogleBook } from '@/services/books';
 import { queryCurrent } from '@/services/user';
+import { createTag } from '@/services/tags';
 import { addNote, AddNoteParams } from '@/services/notes';
 
 
@@ -31,12 +33,33 @@ type SaveNoteProps = {
   toggleModal: Function,
   open: boolean,
   books: Array<Object>,
+  tags: Array<Object>
 }
 const SaveNote: React.FC<{props: SaveNoteProps}> = (props: SaveNoteProps) => {
   const [privateNote, setPrivateNote] = useState(false);
   const [bookId, setBookId] = useState(null)
+  const [tags, setTags] = useState(props.tags)
+  const [selectedTags, setSelectedTag] = useState([])
+  const [inputVisible, setInputVisible] = useState(false)
+  const [inputValue, setInputValue] = useState('')
+  const { CheckableTag } = Tag;
 
   const values = { content: JSON.stringify(props.noteContents), book_id: bookId, private: privateNote }
+
+  async function handleInputConfirm() {
+    const tagNames = tags.map(tag => tag.name)
+    if (inputValue && tagNames.indexOf(inputValue) === -1) {
+      const res = await createTag({ name: inputValue })
+      setTags([...tags, res])
+    }
+    setInputVisible(false)
+    setInputValue('')
+  };
+
+  const handleSelectTag = (tag, checked) => {
+    const nextSelectedTags = checked ? [...selectedTags, tag] : selectedTags.filter(t => t !== tag);
+    setSelectedTag(nextSelectedTags)
+  }
 
   return (
     <Modal
@@ -71,6 +94,36 @@ const SaveNote: React.FC<{props: SaveNoteProps}> = (props: SaveNoteProps) => {
         <Form.Item label="Private">
           <Switch checked={privateNote} onChange={() => setPrivateNote(!privateNote)} />
         </Form.Item>
+        <Form.Item label="Tags">
+          {!inputVisible && (
+            <Tag onClick={() => setInputVisible(true)} className="site-tag-plus">
+              <PlusOutlined /> New Tag
+            </Tag>
+          )}
+          {inputVisible && (
+            <Input
+              // ref={this.saveInputRef}
+              type="text"
+              size="small"
+              style={{ width: 78 }}
+              value={inputValue}
+              onChange={(val: string) => setInputValue(val.target.value)}
+              onBlur={handleInputConfirm}
+              onPressEnter={handleInputConfirm}
+            />
+          )}
+          {tags.map(tag => {
+            return <CheckableTag
+              key={tag.id}
+              checked={selectedTags.indexOf(tag) > -1}
+              onChange={checked => handleSelectTag(tag, checked)}
+              style={{'border': '.5px solid grey'}}
+            >
+              {tag.name}
+            </CheckableTag>
+          })}
+        </Form.Item>
+
     </Form>
     </Modal>
   )
@@ -80,6 +133,7 @@ const Note: React.FC<{}> = () => {
   const [noteContents, setNoteContents] = useState(new Delta());
   const [showModal, setShowModal] = useState(false);
   const [googleBooks, setGoogleBooks] = useState([]);
+  const [tags, setTags] = useState([]);
 
   const toggleModal = (): void => setShowModal(!showModal)
 
@@ -88,6 +142,7 @@ const Note: React.FC<{}> = () => {
     async function fetchData() {
       try {
         const currentUser = await queryCurrent()
+        setTags(currentUser.tags)
         await currentUser.books.map(async (book) => {
           const newBook = await getGoogleBook(book.id)
           newBook['wellReadId'] = book.id
@@ -108,7 +163,7 @@ const Note: React.FC<{}> = () => {
     toolbar: [
       [{ 'header': [1, 2, false] }],
       ['bold', 'italic', 'underline','strike', 'blockquote'],
-      [{'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+      [{'list': 'bullet'}],
       ['link', 'image'],
       ['clean']
     ],
@@ -117,7 +172,7 @@ const Note: React.FC<{}> = () => {
   const formats = [
     'header',
     'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'bullet', 'indent',
+    'bullet',
     'link', 'image'
   ]
   
@@ -136,7 +191,7 @@ const Note: React.FC<{}> = () => {
           
         <Button style={{ marginTop: 16 }} onClick={() => setShowModal(true)}>Save</Button>
       </Card>
-      {showModal && <SaveNote noteContents={noteContents} toggleModal={toggleModal} open={showModal} books={googleBooks}/>}
+      {showModal && <SaveNote noteContents={noteContents} toggleModal={toggleModal} open={showModal} books={googleBooks} tags={tags}/>}
     </PageContainer>
   );
 }

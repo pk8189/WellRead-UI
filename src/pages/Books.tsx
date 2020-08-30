@@ -1,8 +1,7 @@
 import React, { useEffect, useState, } from 'react';
 import _ from 'lodash';
-import { SettingOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { EllipsisOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Link } from 'umi';
 import { Card, Row, Col, Menu, Dropdown } from 'antd';
 import { getGoogleBook, removeBook } from '@/services/books';
 import { queryCurrent } from '@/services/user';
@@ -57,7 +56,7 @@ const BookCard: React.ReactNode = (props: BookCardProps) => (
             googleBooksId={props.googleBooksId}
             removeBook={props.removeBook}
           />}>
-        <SettingOutlined key="setting" />
+        <EllipsisOutlined key="ellipsis" />
       </Dropdown>
     ]}
   >

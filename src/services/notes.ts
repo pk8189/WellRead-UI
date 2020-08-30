@@ -13,3 +13,10 @@ export async function addNote(params: AddNoteParams) {
     data: params
   });
 }
+
+export async function deleteNote(id: number) {
+  return request<API.CurrentUser>(`/api/note/${id}/`, {
+    method: 'DELETE',
+    headers: { ...getAuthHeader() },
+  })
+}

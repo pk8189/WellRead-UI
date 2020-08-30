@@ -18,6 +18,14 @@ declare namespace API {
       user_id: number;
       book_id: number;
     }[];
+    tags: {
+      id: number;
+      name: string,
+      create_date: string,
+      archived: boolean,
+      books: Array<Object>,
+      notes: Array<Object>,
+    }
   }
 
   export interface BookRes {
