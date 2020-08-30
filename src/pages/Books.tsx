@@ -68,31 +68,6 @@ const BookCard: React.ReactNode = (props: BookCardProps) => (
   </Card>
 )
 
-const NewBook: React.ReactNode = () => (
-  <Link to="/books/new">
-    <Card
-      size="small"
-      style={{ width: 200, height: 350 }}
-      hoverable
-      cover={
-        <img
-          style={{width: 200, height: 280}}
-          alt="example"
-          src="https://icons.iconarchive.com/icons/thalita-torres/office/1024/school-book-icon.png"
-        />
-      }
-      actions={[
-        <PlusCircleOutlined key="add" />,
-      ]}
-    >
-    <Meta
-      title="Add a new book"
-      description="Search by book title"
-      />
-    </Card>
-  </Link>
-)
-
 const Books: React.FC<{}> = () => {
   const [userBooks, setUserBooks] = useState([])
   const [googleBooks, setGoogleBooks] = useState([]);
@@ -122,7 +97,6 @@ const Books: React.FC<{}> = () => {
   return (
     <PageContainer>
       <Row gutter={[32, 32]} style={exploreLayout}>
-        <Col><NewBook /></Col>
         {googleBooks.map(book => {
           const title = _.get(book, 'volumeInfo.title', '')
           const authors = _.get(book, 'volumeInfo.authors', ['Unknown Author']).toString(' ')
@@ -141,8 +115,6 @@ const Books: React.FC<{}> = () => {
       </Row>
     </PageContainer>
   )
-  
-
 };
 
 export default Books;

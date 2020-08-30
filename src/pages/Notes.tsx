@@ -2,12 +2,15 @@ import React, { useEffect, useState, } from 'react';
 import _ from 'lodash';
 import { Button, Card, Modal, message, Form, Select, Switch } from 'antd';
 import ReactQuill from 'react-quill';
+import Delta from 'quill-delta';
 import { PageContainer } from '@ant-design/pro-layout';
 
 import { getGoogleBook } from '@/services/books';
 import { queryCurrent } from '@/services/user';
 import { addNote, AddNoteParams } from '@/services/notes';
 
+
+import './Notes.less';
 import 'react-quill/dist/quill.snow.css';
 
 const handleAddNote = async (values: AddNoteParams) => {
@@ -29,12 +32,11 @@ type SaveNoteProps = {
   open: boolean,
   books: Array<Object>,
 }
-const SaveNote: React.FC<{}> = (props: SaveNoteProps) => {
+const SaveNote: React.FC<{props: SaveNoteProps}> = (props: SaveNoteProps) => {
   const [privateNote, setPrivateNote] = useState(false);
   const [bookId, setBookId] = useState(null)
 
-  const values = { content: props.noteContents, book_id: bookId, private: privateNote }
-  console.log(bookId)
+  const values = { content: JSON.stringify(props.noteContents), book_id: bookId, private: privateNote }
 
   return (
     <Modal
@@ -74,8 +76,8 @@ const SaveNote: React.FC<{}> = (props: SaveNoteProps) => {
   )
 }
 
-const NewNote: React.FC<{}> = () => {
-  const [noteContents, setNoteContents] = useState("");
+const Note: React.FC<{}> = () => {
+  const [noteContents, setNoteContents] = useState(new Delta());
   const [showModal, setShowModal] = useState(false);
   const [googleBooks, setGoogleBooks] = useState([]);
 
@@ -84,27 +86,54 @@ const NewNote: React.FC<{}> = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const currentUser = await queryCurrent()
-      await currentUser.books.map(async (book) => {
-        const newBook = await getGoogleBook(book.id)
-        newBook['wellReadId'] = book.id
-        setGoogleBooks(prev => [...prev, newBook])
-      })
+      try {
+        const currentUser = await queryCurrent()
+        await currentUser.books.map(async (book) => {
+          const newBook = await getGoogleBook(book.id)
+          newBook['wellReadId'] = book.id
+          setGoogleBooks(prev => [...prev, newBook])
+        })
+      } catch {
+        console.log('error')
+      }
     }
     fetchData();
   }, []);
 
+  const updateNoteContents = (__: string, ___: Delta, ____, editor) => {
+    setNoteContents(editor.getContents())
+  };
 
-  
-  const updateNoteContents = (contents: string) => {
-    setNoteContents(contents)
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline','strike', 'blockquote'],
+      [{'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+      ['link', 'image'],
+      ['clean']
+    ],
   }
 
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'bullet', 'indent',
+    'link', 'image'
+  ]
   
   return (
     <PageContainer>
       <Card title="Compose A Note">
-        <ReactQuill onChange={updateNoteContents} value={noteContents} placeholder="Note contents" preserveWhitespace/>
+        <ReactQuill
+          name="editor"
+          onChange={updateNoteContents}
+          value={noteContents}
+          placeholder="Note contents"
+          modules={modules}
+          formats={formats}
+          preserveWhitespace
+        />
+          
         <Button style={{ marginTop: 16 }} onClick={() => setShowModal(true)}>Save</Button>
       </Card>
       {showModal && <SaveNote noteContents={noteContents} toggleModal={toggleModal} open={showModal} books={googleBooks}/>}
@@ -113,4 +142,4 @@ const NewNote: React.FC<{}> = () => {
 }
 
 
-export default NewNote;
+export default Note;

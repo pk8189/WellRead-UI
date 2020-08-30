@@ -4,10 +4,19 @@ declare namespace API {
     id: number;
     full_name: string;
     email: string;
-    books?: {
-      id: string;
-      book_title: string;
-      author_name: string;
+    books: {
+      id: number;
+      google_books_id: string;
+      google_books_self_link: string;
+    }[];
+    notes: {
+      id: number;
+      create_date: string;
+      content: string;
+      private: boolean;
+      archived: boolean;
+      user_id: number;
+      book_id: number;
     }[];
   }
 
