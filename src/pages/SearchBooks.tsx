@@ -1,10 +1,12 @@
 import _ from 'lodash';
 import React, { useState, FunctionComponent } from 'react';
 import { Input, message, Card, Row, Col, Modal, Button } from 'antd';
+import { useModel } from 'umi';
 import { PageContainer } from '@ant-design/pro-layout';
 import Ellipsis from 'ant-design-pro/lib/Ellipsis';
 
 import { queryGoogleBooks, addBook, AddBookParams } from '@/services/books';
+import { getGoogleBook } from '@/services/books';
 
 const { Meta } = Card;
 
@@ -15,6 +17,9 @@ const exploreLayout = {
 }
 
 const GoogleBookOpen: React.FC<{ bookRes: Object, toggleModal: FunctionComponent, open: boolean }> = ({ toggleModal, open, ...bookRes  }) => {
+  const { initialState, setInitialState } = useModel('@@initialState');
+  const { books, googleBooks } = initialState || {};
+  
   const { data } = bookRes;
   const { title } = data.data.volumeInfo;
   const { id } = data.data;
@@ -25,13 +30,25 @@ const GoogleBookOpen: React.FC<{ bookRes: Object, toggleModal: FunctionComponent
   const authors = _.get(data, 'data.volumeInfo.authors', ['Unknown Author']).toString(' ')
 
   const handleAddBook = async (values: AddBookParams) => {
+
     try {
       const res = await addBook({ ...values });
       if (_.get(res, 'id', false)) {
+        const duplicateBook = books.filter(book => book.id === res.id)
+        if (!duplicateBook.length) {
+          const newUserBooks = books.push(res)
+          setInitialState({ ...initialState, books: newUserBooks })
+          const newBook = await getGoogleBook(res.id)
+          newBook.wellReadId = res.id
+          googleBooks.push(newBook)
+          setInitialState({ ...initialState, googleBooks: googleBooks })
+        }
+
         message.success('Book added to shelf');
         return
       }
     } catch (error) {
+      console.log(error)
       message.error('Failed to add book');
     }
   };

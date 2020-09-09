@@ -1,15 +1,14 @@
 import React, { useEffect, useState, } from 'react';
 import _ from 'lodash';
-import { Button, Card, Modal, message, Form, Select, Switch, Tag, Input } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import ReactQuill from 'react-quill';
+import { Button, Card, message } from 'antd';
 import Delta from 'quill-delta';
 import { PageContainer } from '@ant-design/pro-layout';
 
+import QuillNotes from '@/components/QuillNotes';
 import { getGoogleBook } from '@/services/books';
 import { queryCurrent } from '@/services/user';
-import { createTag } from '@/services/tags';
 import { addNote, AddNoteParams } from '@/services/notes';
+import SaveNote from '@/components/SaveNote';
 
 
 import './Notes.less';
@@ -27,108 +26,6 @@ const handleAddNote = async (values: AddNoteParams) => {
   }
 };
 
-
-type SaveNoteProps = {
-  noteContents: string,
-  toggleModal: Function,
-  open: boolean,
-  books: Array<Object>,
-  tags: Array<Object>
-}
-const SaveNote: React.FC<{props: SaveNoteProps}> = (props: SaveNoteProps) => {
-  const [privateNote, setPrivateNote] = useState(false);
-  const [bookId, setBookId] = useState(null)
-  const [tags, setTags] = useState(props.tags)
-  const [selectedTags, setSelectedTag] = useState([])
-  const [inputVisible, setInputVisible] = useState(false)
-  const [inputValue, setInputValue] = useState('')
-  const { CheckableTag } = Tag;
-
-  const values = { content: JSON.stringify(props.noteContents), book_id: bookId, private: privateNote }
-
-  async function handleInputConfirm() {
-    const tagNames = tags.map(tag => tag.name)
-    if (inputValue && tagNames.indexOf(inputValue) === -1) {
-      const res = await createTag({ name: inputValue })
-      setTags([...tags, res])
-    }
-    setInputVisible(false)
-    setInputValue('')
-  };
-
-  const handleSelectTag = (tag, checked) => {
-    const nextSelectedTags = checked ? [...selectedTags, tag] : selectedTags.filter(t => t !== tag);
-    setSelectedTag(nextSelectedTags)
-  }
-
-  return (
-    <Modal
-      title="Save Note"
-      visible={props.open}
-      onOk={() => props.toggleModal()}
-      onCancel={() => props.toggleModal()}
-      footer={[
-        <Button key="back" onClick={() => props.toggleModal()}>
-          Back
-        </Button>,
-        <Button key="submit" type="primary" disabled={props.noteContents==='' || !bookId}onClick={() => handleAddNote(values) && props.toggleModal() }>
-          Save
-        </Button>,
-      ]}
-    >
-    <Form
-      labelCol={{ span: 4 }}
-      wrapperCol={{ span: 14 }}
-      layout="horizontal"
-      >
-        <Form.Item label="Book">
-        <Select onSelect={(value) => setBookId(value)}>
-          {props.books.map(book => {
-            return (<Select.Option
-              key={book.id}
-              value={book.wellReadId}
-            >{book.volumeInfo.title}</Select.Option>)
-          })}
-        </Select>
-        </Form.Item>
-        <Form.Item label="Private">
-          <Switch checked={privateNote} onChange={() => setPrivateNote(!privateNote)} />
-        </Form.Item>
-        <Form.Item label="Tags">
-          {!inputVisible && (
-            <Tag onClick={() => setInputVisible(true)} className="site-tag-plus">
-              <PlusOutlined /> New Tag
-            </Tag>
-          )}
-          {inputVisible && (
-            <Input
-              // ref={this.saveInputRef}
-              type="text"
-              size="small"
-              style={{ width: 78 }}
-              value={inputValue}
-              onChange={(val: string) => setInputValue(val.target.value)}
-              onBlur={handleInputConfirm}
-              onPressEnter={handleInputConfirm}
-            />
-          )}
-          {tags.map(tag => {
-            return <CheckableTag
-              key={tag.id}
-              checked={selectedTags.indexOf(tag) > -1}
-              onChange={checked => handleSelectTag(tag, checked)}
-              style={{'border': '.5px solid grey'}}
-            >
-              {tag.name}
-            </CheckableTag>
-          })}
-        </Form.Item>
-
-    </Form>
-    </Modal>
-  )
-}
-
 const Note: React.FC<{}> = () => {
   const [noteContents, setNoteContents] = useState(new Delta());
   const [showModal, setShowModal] = useState(false);
@@ -136,7 +33,6 @@ const Note: React.FC<{}> = () => {
   const [tags, setTags] = useState([]);
 
   const toggleModal = (): void => setShowModal(!showModal)
-
 
   useEffect(() => {
     async function fetchData() {
@@ -158,40 +54,23 @@ const Note: React.FC<{}> = () => {
   const updateNoteContents = (__: string, ___: Delta, ____, editor) => {
     setNoteContents(editor.getContents())
   };
-
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, false] }],
-      ['bold', 'italic', 'underline','strike', 'blockquote'],
-      [{'list': 'bullet'}],
-      ['link', 'image'],
-      ['clean']
-    ],
-  }
-
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'bullet',
-    'link', 'image'
-  ]
   
   return (
     <PageContainer>
       <Card title="Compose A Note">
-        <ReactQuill
-          name="editor"
-          onChange={updateNoteContents}
-          value={noteContents}
-          placeholder="Note contents"
-          modules={modules}
-          formats={formats}
-          preserveWhitespace
-        />
+        <QuillNotes noteContents={noteContents} updateNoteContents={updateNoteContents}/>
           
         <Button style={{ marginTop: 16 }} onClick={() => setShowModal(true)}>Save</Button>
       </Card>
-      {showModal && <SaveNote noteContents={noteContents} toggleModal={toggleModal} open={showModal} books={googleBooks} tags={tags}/>}
+      {showModal && <SaveNote
+        noteContents={noteContents}
+        handleSaveNote={handleAddNote}
+        toggleModal={toggleModal}
+        open={showModal}
+        books={googleBooks}
+        tags={tags}
+        selectedTags={[]}
+    />}
     </PageContainer>
   );
 }

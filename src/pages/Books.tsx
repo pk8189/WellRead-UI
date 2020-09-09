@@ -1,10 +1,10 @@
-import React, { useEffect, useState, } from 'react';
+import React from 'react';
 import _ from 'lodash';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Row, Col, Menu, Dropdown } from 'antd';
-import { getGoogleBook, removeBook } from '@/services/books';
-import { queryCurrent } from '@/services/user';
+import { useModel } from 'umi';
+import { removeBook } from '@/services/books';
 import Ellipsis from 'ant-design-pro/lib/Ellipsis';
 
 const { Meta } = Card;
@@ -17,19 +17,17 @@ const exploreLayout = {
 
 
 type BookMenuProps = {
-  wellReadId: string,
-  googleBooksId: string,
+  bookId: string,
   removeBook: Function,
 }
 const BookMenu: React.ReactNode = (props: BookMenuProps) => (
   <Menu style={{ 'backgroundColor': '#fafafa' }}>
-    <Menu.Item danger onClick={() => props.removeBook(props.wellReadId, props.googleBooksId)}>Remove From My Books</Menu.Item>
+    <Menu.Item danger onClick={() => props.removeBook(props.bookId)}>Remove From My Books</Menu.Item>
   </Menu>
 )
 
 type BookCardProps = {
-  wellReadId: string,
-  googleBooksId: string,
+  bookId: string,
   title: string,
   authors: string,
   imageLink: string,
@@ -52,8 +50,7 @@ const BookCard: React.ReactNode = (props: BookCardProps) => (
         placement="topCenter"
         arrow
         overlay={
-          <BookMenu wellReadId={props.wellReadId}
-            googleBooksId={props.googleBooksId}
+          <BookMenu bookId={props.bookId}
             removeBook={props.removeBook}
           />}>
         <EllipsisOutlined key="ellipsis" />
@@ -68,42 +65,28 @@ const BookCard: React.ReactNode = (props: BookCardProps) => (
 )
 
 const Books: React.FC<{}> = () => {
-  const [userBooks, setUserBooks] = useState([])
-  const [googleBooks, setGoogleBooks] = useState([]);
+  const { initialState, setInitialState } = useModel('@@initialState');
+  console.log(initialState)
+  const { books } = initialState || {};
 
-  useEffect(() => {
-    async function fetchData() {
-      const currentUser = await queryCurrent()
-      setUserBooks(currentUser.books)
-      await currentUser.books.map(async (book) => {
-        const newBook = await getGoogleBook(book.id)
-        newBook['wellReadId'] = book.id
-        setGoogleBooks(prev => [...prev, newBook])
-      })
-    }
-    fetchData();
-  }, []);
-
-  const removeBookUpdateState = async (wellReadId: string, googleBookId: string) => {
-    await removeBook(wellReadId);
-    const newUserBooks = userBooks.filter(book => book.id !== wellReadId)
-    setUserBooks(newUserBooks)
-    const newGoogleBooks = googleBooks.filter(book => book.id !== googleBookId)
-    setGoogleBooks(newGoogleBooks)
+  const removeBookUpdateState = async (bookId: string) => {
+    console.log(bookId)
+    await removeBook(bookId);
+    const newUserBooks = books.filter(book => book.id !== bookId)
+    setInitialState({ ...initialState, books: newUserBooks })
   }
 
 
   return (
     <PageContainer>
       <Row gutter={[32, 32]} style={exploreLayout}>
-        {googleBooks.map(book => {
-          const title = _.get(book, 'volumeInfo.title', '')
-          const authors = _.get(book, 'volumeInfo.authors', ['Unknown Author']).toString(' ')
-          const imageLink = _.get(book, 'volumeInfo.imageLinks.thumbnail', '')
+        {books.map(book => {
+          const title = _.get(book, 'googleBook.volumeInfo.title', '')
+          const authors = _.get(book, 'googleBook.volumeInfo.authors', ['Unknown Author']).toString(' ')
+          const imageLink = _.get(book, 'googleBook.volumeInfo.imageLinks.thumbnail', '')
           return <Col key={book.id}>
             <BookCard
-              wellReadId={book.wellReadId}
-              googleBooksId={book.id}
+              bookId={book.id}
               title={title}
               authors={authors}
               imageLink={imageLink}

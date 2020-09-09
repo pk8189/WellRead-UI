@@ -20,3 +20,14 @@ export async function deleteNote(id: number) {
     headers: { ...getAuthHeader() },
   })
 }
+
+export interface UpdateNoteParams {
+  content: string;
+}
+export async function updateNote(params: UpdateNoteParams, noteId: number,) {
+  return request<API.GoogleBooksQuery>(`/api/note/${noteId}/`, {
+    method: 'PUT',
+    headers: { ...getAuthHeader() },
+    data: params
+  });
+}

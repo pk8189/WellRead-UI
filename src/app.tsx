@@ -5,7 +5,9 @@ import { history, RequestConfig } from 'umi';
 import RightContent from '@/components/RightContent';
 import Footer from '@/components/Footer';
 import { ResponseError } from 'umi-request';
+import { getGoogleBook } from '@/services/books';
 import { queryCurrent } from './services/user';
+
 import defaultSettings from '../config/defaultSettings';
 
 export async function getInitialState(): Promise<{
@@ -15,9 +17,15 @@ export async function getInitialState(): Promise<{
   if (history.location.pathname !== '/user/login') {
     try {
       const currentUser = await queryCurrent();
+      await currentUser.books.map(async (book) => {
+        const newBook = await getGoogleBook(book.id)
+        book.googleBook = newBook
+      })
+      const books = currentUser.books || [];
 
       return {
         currentUser,
+        books,
         settings: defaultSettings,
       };
     } catch (error) {
