@@ -22,10 +22,14 @@ export async function getInitialState(): Promise<{
         book.googleBook = newBook
       })
       const books = currentUser.books || [];
+      const tags = currentUser.tags || [];
+      const notes = currentUser.notes || [];
 
       return {
         currentUser,
         books,
+        tags,
+        notes,
         settings: defaultSettings,
       };
     } catch (error) {

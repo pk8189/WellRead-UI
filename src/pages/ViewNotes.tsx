@@ -1,16 +1,15 @@
 import _ from 'lodash';
-import React, { useEffect, useState, } from 'react';
+import React, { useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html'; 
 import Interweave from 'interweave';
-import { Card, Dropdown, Menu } from 'antd';
-import Delta from 'quill-delta';
+import { Card, Dropdown, Menu, message } from 'antd';
+import { useModel } from 'umi';
 import { EditOutlined, EllipsisOutlined } from '@ant-design/icons';
 
 import NoteEditor from '@/components/NoteEditor';
-import { queryCurrent } from '@/services/user';
 import { deleteNote } from '@/services/notes';
-import { getGoogleBook } from '@/services/books';
+import { updateNote } from '@/services/notes';
 
 
 type NoteMenuProps = {
@@ -40,18 +39,14 @@ type NoteCardProps = {
   content: string,
   bookId: number,
   deleteNote: Function,
+  saveUpdateNote: Function,
 }
 const NoteCard: React.FC<NoteCardProps> = (props) => {
 
-  const [noteContents, setNoteContents] = useState(JSON.parse(props.content).ops)
+  const noteContents = JSON.parse(props.content).ops
   const [showModal, setShowModal] = useState(false);
 
   const toggleModal = (): void => setShowModal(!showModal)
-
-  const updateNoteContents = (__: string, ___: Delta, ____, editor) => {
-    console.log(editor.getContents())
-    setNoteContents(editor.getContents())
-  };
 
   const cfg = {}
   const converter = new QuillDeltaToHtmlConverter(noteContents, cfg)
@@ -79,7 +74,7 @@ const NoteCard: React.FC<NoteCardProps> = (props) => {
       toggleModal={toggleModal}
       open={showModal}
       noteContents={noteContents}
-      updateNoteContents={updateNoteContents}
+      saveUpdateNote={props.saveUpdateNote}
     />}
     </>
   )
@@ -88,31 +83,27 @@ const NoteCard: React.FC<NoteCardProps> = (props) => {
 
 const ViewNotes: React.FC<{}> = () => {
 
-  const [notes, setNotes] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [books, setBooks] = useState([]);
-  console.log(tags)
-  console.log(books)
+  const { initialState, setInitialState } = useModel('@@initialState');
+  const { notes } = initialState || {};
 
   async function asyncDeleteNote(id: number) {
     await deleteNote(id)
     const newNotes = notes.filter(note => note.id !== id)
-    setNotes(newNotes)
+    setInitialState({ ...initialState, notes: newNotes })
   }
 
-  useEffect(() => {
-    async function fetchData() {
-      const currentUser = await queryCurrent()
-      setNotes(currentUser.notes)
-      setTags(currentUser.tags)
-      await currentUser.books.map(async (book) => {
-        const newBook = await getGoogleBook(book.id)
-        newBook['wellReadId'] = book.id
-        setBooks(prev => [...prev, newBook])
-      })
+  async function saveUpdateNote(saveParams: Object, noteId: number) {
+    const updatedNote = await updateNote(saveParams, noteId)
+    if (_.get(updatedNote, 'id', false)) {
+      const noteIdx = notes.findIndex((note => note.id == noteId));
+      notes[noteIdx].content = saveParams.content
+      setInitialState({...initialState, notes: notes})
+      message.success('Note updated!');
+      return
     }
-    fetchData();
-  }, []);
+    message.error('Failed to save note')
+    return
+  }
 
   return (
     <PageContainer>
@@ -123,6 +114,7 @@ const ViewNotes: React.FC<{}> = () => {
           content={note.content}
           bookId={note.book_id}
           deleteNote={asyncDeleteNote}
+          saveUpdateNote={saveUpdateNote}
         />)
       })}
     </PageContainer>

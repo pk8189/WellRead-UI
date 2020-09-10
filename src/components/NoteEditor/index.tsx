@@ -1,9 +1,8 @@
 import _ from 'lodash';
-import React from 'react';
+import React, { useState }  from 'react';
 import { Modal, Button } from 'antd';
 import Delta from 'quill-delta';
 
-import { updateNote } from '@/services/notes';
 import QuillNotes from '@/components/QuillNotes';
 
 type NoteEditorProps = {
@@ -11,12 +10,21 @@ type NoteEditorProps = {
   toggleModal: Function,
   open: boolean,
   noteContents: Delta,
-  updateNoteContents: Function,
+  saveUpdateNote, Function,
 }
 const NoteEditor: React.FC<NoteEditorProps> = (props: NoteEditorProps) => {
+  const [noteContents, setNoteContents] = useState(props.noteContents)
+  const saveNoteParams = { content: JSON.stringify(noteContents) }
+  const deltaProps = new Delta(noteContents)
 
-  const saveNoteParams = { content: JSON.stringify(props.noteContents) }
-  const deltaProps = new Delta(props.noteContents)
+  const updateNoteContents = (__: string, ___: Delta, ____, editor) => {
+    setNoteContents(editor.getContents())
+  };
+
+  const saveIt = async (saveParams: Object, noteId: number) => {
+    await props.saveUpdateNote(saveParams, noteId)
+    props.toggleModal()
+  }
 
   return (
     <Modal
@@ -28,12 +36,12 @@ const NoteEditor: React.FC<NoteEditorProps> = (props: NoteEditorProps) => {
         <Button key="cancel" onClick={() => props.toggleModal()}>
           Cancel
         </Button>,
-        <Button key="save" type="primary" onClick={() => { updateNote(saveNoteParams, props.noteId); props.toggleModal() }}>
+        <Button key="save" type="primary" onClick={() => saveIt(saveNoteParams, props.noteId)}>
           Save
         </Button>,
       ]}
     >
-      <QuillNotes noteContents={deltaProps} updateNoteContents={props.updateNoteContents} />
+      <QuillNotes noteContents={deltaProps} updateNoteContents={updateNoteContents} />
     </Modal>
 
   )

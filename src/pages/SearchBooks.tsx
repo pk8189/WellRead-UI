@@ -18,7 +18,7 @@ const exploreLayout = {
 
 const GoogleBookOpen: React.FC<{ bookRes: Object, toggleModal: FunctionComponent, open: boolean }> = ({ toggleModal, open, ...bookRes  }) => {
   const { initialState, setInitialState } = useModel('@@initialState');
-  const { books, googleBooks } = initialState || {};
+  const { books } = initialState || {};
   
   const { data } = bookRes;
   const { title } = data.data.volumeInfo;
@@ -36,14 +36,10 @@ const GoogleBookOpen: React.FC<{ bookRes: Object, toggleModal: FunctionComponent
       if (_.get(res, 'id', false)) {
         const duplicateBook = books.filter(book => book.id === res.id)
         if (!duplicateBook.length) {
-          const newUserBooks = books.push(res)
-          setInitialState({ ...initialState, books: newUserBooks })
-          const newBook = await getGoogleBook(res.id)
-          newBook.wellReadId = res.id
-          googleBooks.push(newBook)
-          setInitialState({ ...initialState, googleBooks: googleBooks })
+          res.googleBook = await getGoogleBook(res.id)
+          books.push(res)
+          setInitialState({ ...initialState, books: books })
         }
-
         message.success('Book added to shelf');
         return
       }

@@ -65,8 +65,8 @@ const SaveNote: React.FC<SaveNoteProps> = (props) => {
           {props.books.map(book => {
             return (<Select.Option
               key={book.id}
-              value={book.wellReadId}
-            >{book.volumeInfo.title}</Select.Option>)
+              value={book.id}
+            >{book.googleBook.volumeInfo.title}</Select.Option>)
           })}
         </Select>
         </Form.Item>
