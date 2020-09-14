@@ -44,7 +44,6 @@ const GoogleBookOpen: React.FC<{ bookRes: Object, toggleModal: FunctionComponent
         return
       }
     } catch (error) {
-      console.log(error)
       message.error('Failed to add book');
     }
   };

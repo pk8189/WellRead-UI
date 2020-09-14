@@ -66,11 +66,9 @@ const BookCard: React.ReactNode = (props: BookCardProps) => (
 
 const Books: React.FC<{}> = () => {
   const { initialState, setInitialState } = useModel('@@initialState');
-  console.log(initialState)
   const { books } = initialState || {};
 
   const removeBookUpdateState = async (bookId: string) => {
-    console.log(bookId)
     await removeBook(bookId);
     const newUserBooks = books.filter(book => book.id !== bookId)
     setInitialState({ ...initialState, books: newUserBooks })

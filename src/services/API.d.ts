@@ -1,5 +1,15 @@
 declare namespace API {
 
+  export interface Note {
+    id: number;
+    create_date: string;
+    content: string;
+    private: boolean;
+    archived: boolean;
+    user_id: number;
+    book_id: number;
+  }
+
   export interface CurrentUser {
     id: number;
     full_name: string;

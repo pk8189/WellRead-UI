@@ -21,7 +21,7 @@ const handleAddNote = async (values: AddNoteParams) => {
       return
     }
   } catch (error) {
-    message.error('Failed to add book');
+    message.error('Failed to add note');
   }
 };
 

@@ -3,14 +3,18 @@ import React, { useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html'; 
 import Interweave from 'interweave';
-import { Card, Dropdown, Menu, message } from 'antd';
+import { Card, Dropdown, Menu, message, Avatar, Divider, Tag } from 'antd';
+import { PlusCircleFilled } from '@ant-design/icons';
+
 import { useModel } from 'umi';
 import { EditOutlined, EllipsisOutlined } from '@ant-design/icons';
 
 import NoteEditor from '@/components/NoteEditor';
-import { deleteNote } from '@/services/notes';
-import { updateNote } from '@/services/notes';
+import SaveNote from '@/components/SaveNote';
+import { deleteNote, updateNote, tagNote, removeTagNote, addNote, AddNoteParams } from '@/services/notes';
 
+import './Notes.less';
+import Delta from 'quill-delta';
 
 type NoteMenuProps = {
   id: number,
@@ -37,27 +41,38 @@ function transform(node: HTMLElement, children: Node[]): React.ReactNode {
 type NoteCardProps = {
   noteId: number,
   content: string,
-  bookId: number,
+  book: Object,
+  private: boolean,
+  books: Array<Object>,
+  tags: Array<Object>,
+  allTags: Array<Object>,
   deleteNote: Function,
   saveUpdateNote: Function,
 }
 const NoteCard: React.FC<NoteCardProps> = (props) => {
 
-  const noteContents = JSON.parse(props.content).ops
-  const [showModal, setShowModal] = useState(false);
+  const [noteContents, setNoteContents] = useState(JSON.parse(props.content).ops)
+  const [showEditorModal, setShowModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
-  const toggleModal = (): void => setShowModal(!showModal)
+  const toggleEditorModal = (): void => setShowModal(!showEditorModal)
+  const toggleSaveModal = (): void => setShowSaveModal(!showSaveModal)
+
+  const saveNoteContents = (nC: Array<Object>): void => setNoteContents(nC.ops)
 
   const cfg = {}
   const converter = new QuillDeltaToHtmlConverter(noteContents, cfg)
   const html = converter.convert()
+
+  const { Meta } = Card;
+
 
   return (<>
     <Card
       key={props.noteId}
       style={{ 'maxWidth': '75%', 'marginBottom': '25px' }}
       actions={[
-        <EditOutlined key="edit" onClick={() => toggleModal()}/>,
+        <EditOutlined key="edit" onClick={() => toggleEditorModal()}/>,
         <Dropdown
           placement="topCenter"
           arrow
@@ -67,15 +82,39 @@ const NoteCard: React.FC<NoteCardProps> = (props) => {
         </Dropdown>,
       ]}
     >
+      <Meta
+        avatar={<Avatar src={_.get(props, 'book.googleBook.volumeInfo.imageLinks.smallThumbnail')} />}
+        title={_.get(props, 'book.googleBook.volumeInfo.title')}
+        description= {props.tags.map(tag => {
+          return <Tag
+            key={tag.id}
+          >
+            {tag.name}
+          </Tag>
+        })}
+      />
+      <Divider />
       <Interweave key={props.noteId} content={html} transform={transform} />
     </Card>
-    {showModal && <NoteEditor
-      noteId={props.noteId}
-      toggleModal={toggleModal}
-      open={showModal}
+    {showEditorModal && <NoteEditor
+      toggleModal={toggleEditorModal}
+      toggleSaveModal={toggleSaveModal}
+      open={showEditorModal}
       noteContents={noteContents}
-      saveUpdateNote={props.saveUpdateNote}
+      saveUpdateNote={saveNoteContents}
     />}
+    {showSaveModal && <SaveNote
+      noteContents={noteContents}
+      handleSaveNote={props.saveUpdateNote}
+      toggleModal={toggleSaveModal}
+      open={showSaveModal}
+      books={props.books}
+      private={props.private}
+      book={props.book}
+      noteId={props.noteId}
+      tags={props.allTags}
+      selectedTags={props.tags}
+  />}
     </>
   )
 }
@@ -84,7 +123,15 @@ const NoteCard: React.FC<NoteCardProps> = (props) => {
 const ViewNotes: React.FC<{}> = () => {
 
   const { initialState, setInitialState } = useModel('@@initialState');
-  const { notes } = initialState || {};
+  const { notes, books, tags } = initialState || {};
+
+  const [showEditorModal, setShowModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [noteContents, setNoteContents] = useState(new Delta())
+
+
+  const toggleEditorModal = (): void => setShowModal(!showEditorModal)
+  const toggleSaveModal = (): void => setShowSaveModal(!showSaveModal)
 
   async function asyncDeleteNote(id: number) {
     await deleteNote(id)
@@ -92,31 +139,95 @@ const ViewNotes: React.FC<{}> = () => {
     setInitialState({ ...initialState, notes: newNotes })
   }
 
-  async function saveUpdateNote(saveParams: Object, noteId: number) {
+  async function saveUpdateNote(saveParams: Object, tags: Array<Object>, noteId: number) {
+    const noteUpdatedTagIds = notes.filter(note => note.id === noteId)[0].tags.map(tag => tag.id)
     const updatedNote = await updateNote(saveParams, noteId)
-    if (_.get(updatedNote, 'id', false)) {
-      const noteIdx = notes.findIndex((note => note.id == noteId));
-      notes[noteIdx].content = saveParams.content
+    const tagIds = tags.tags.map(tag => tag.id)
+    const tagReqValues = { tags: tagIds, club_tags: [] }
+    const tagsToRemove = noteUpdatedTagIds.filter(id => !tagIds.includes(id))
+    const removeTagReqValues = { tags: tagsToRemove, club_tags: [] }
+
+    if (tagIds.length > 0) {
+      await tagNote(tagReqValues, noteId)
+    }
+    if (tagsToRemove.length > 0) {
+      await removeTagNote(removeTagReqValues, noteId)
+    }
+    if (_.get(updatedNote, 'id')) {
+      notes.map(note => {
+        if (note.id === updatedNote.id)
+          Object.assign(note, saveParams)
+          Object.assign(note, tags)
+      })
       setInitialState({...initialState, notes: notes})
       message.success('Note updated!');
       return
     }
     message.error('Failed to save note')
-    return
   }
+
+  const handleAddNote = async (values: AddNoteParams, newTags: Array<Object>,) => {
+    try {
+      const res = await addNote({ ...values });
+      if (_.get(res, 'id', false)) {
+        if (newTags.tags.length > 0) {
+          const tagIds = newTags.tags.map(tag => tag.id)
+          const tagReqVals = { tags: tagIds, club_tags: [] }
+          await tagNote(tagReqVals, res.id)
+          res.tags = newTags.tags
+        }
+        notes.unshift(res)
+        setInitialState({...initialState, notes: notes})
+        message.success('Note saved!');
+        return
+      }
+    } catch (error) {
+      message.error('Failed to add note');
+    }
+  };
+
+  const saveNoteContents = (nC: Array<Object>): void => setNoteContents(nC)
+
 
   return (
     <PageContainer>
+      <Card
+        style={{ 'maxWidth': '75%', 'marginBottom': '25px', 'textAlign': 'center' }}
+      >
+        <PlusCircleFilled onClick={() => setShowModal(!showEditorModal)}/>
+      </Card>
       {notes.map(note => {
+        const book = books.find(obj => obj.id == note.book_id)
         return (<NoteCard
           key={note.id}
           noteId={note.id}
           content={note.content}
-          bookId={note.book_id}
+          tags={note.tags}
+          allTags={tags}
+          private={note.private}
+          book={book}
+          books={books}
           deleteNote={asyncDeleteNote}
           saveUpdateNote={saveUpdateNote}
         />)
       })}
+    {showEditorModal && <NoteEditor
+      toggleModal={toggleEditorModal}
+      toggleSaveModal={toggleSaveModal}
+      open={showEditorModal}
+      noteContents={noteContents}
+      saveUpdateNote={saveNoteContents}
+      />}
+    {showSaveModal && <SaveNote
+      noteContents={noteContents}
+      handleSaveNote={handleAddNote}
+      toggleModal={toggleSaveModal}
+      open={showSaveModal}
+      books={books}
+      tags={tags}
+      selectedTags={[]}
+    />}
+
     </PageContainer>
   )
 };

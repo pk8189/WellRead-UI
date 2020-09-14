@@ -6,38 +6,37 @@ import Delta from 'quill-delta';
 import QuillNotes from '@/components/QuillNotes';
 
 type NoteEditorProps = {
-  noteId: number,
   toggleModal: Function,
+  toggleSaveModal: Function,
   open: boolean,
   noteContents: Delta,
   saveUpdateNote, Function,
 }
 const NoteEditor: React.FC<NoteEditorProps> = (props: NoteEditorProps) => {
   const [noteContents, setNoteContents] = useState(props.noteContents)
-  const saveNoteParams = { content: JSON.stringify(noteContents) }
   const deltaProps = new Delta(noteContents)
 
   const updateNoteContents = (__: string, ___: Delta, ____, editor) => {
     setNoteContents(editor.getContents())
   };
 
-  const saveIt = async (saveParams: Object, noteId: number) => {
-    await props.saveUpdateNote(saveParams, noteId)
+  const saveIt = () => {
+    props.saveUpdateNote(deltaProps)
     props.toggleModal()
+    props.toggleSaveModal()
   }
 
   return (
     <Modal
       title="Edit Note"
       visible={props.open}
-      onOk={() => props.toggleModal()}
       onCancel={() => props.toggleModal()}
       footer={[
         <Button key="cancel" onClick={() => props.toggleModal()}>
           Cancel
         </Button>,
-        <Button key="save" type="primary" onClick={() => saveIt(saveNoteParams, props.noteId)}>
-          Save
+        <Button key="save" type="primary" onClick={() => saveIt()}>
+          Continue
         </Button>,
       ]}
     >
