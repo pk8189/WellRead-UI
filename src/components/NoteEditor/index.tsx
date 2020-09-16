@@ -11,6 +11,7 @@ type NoteEditorProps = {
   open: boolean,
   noteContents: Delta,
   saveUpdateNote, Function,
+  newNote?: Boolean,
 }
 const NoteEditor: React.FC<NoteEditorProps> = (props: NoteEditorProps) => {
   const [noteContents, setNoteContents] = useState(props.noteContents)
@@ -28,7 +29,7 @@ const NoteEditor: React.FC<NoteEditorProps> = (props: NoteEditorProps) => {
 
   return (
     <Modal
-      title="Edit Note"
+      title={props.newNote ? 'New Note' : 'Edit Note'}
       visible={props.open}
       onCancel={() => props.toggleModal()}
       footer={[

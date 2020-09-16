@@ -65,20 +65,9 @@ export default defineConfig({
     },
     {
       path: '/notes',
-      name: 'Notes',
+      name: 'Your Notes',
       icon: 'edit',
-      routes: [
-        {
-          name: 'My Notes',
-          path: '/notes/me',
-          component: './ViewNotes',
-        },
-        {
-          name: 'Add A Note',
-          path: '/notes/new',
-          component: './Notes',
-        },
-      ],
+      component: './Notes',
     },
     {
       path: '/',

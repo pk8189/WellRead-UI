@@ -23,7 +23,17 @@ export async function getInitialState(): Promise<{
       })
       const books = currentUser.books || [];
       const tags = currentUser.tags || [];
+      tags.sort(function(a, b) {
+        const dateA = new Date(a.create_date)
+        const dateB = new Date(b.create_date);
+        return dateB - dateA;
+      });
       const notes = currentUser.notes || [];
+      notes.sort(function(a, b) {
+        const dateA = new Date(a.create_date)
+        const dateB = new Date(b.create_date);
+        return dateB - dateA;
+      });
 
       return {
         currentUser,
