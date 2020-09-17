@@ -1,6 +1,6 @@
 import React, { useState, } from 'react';
 import _ from 'lodash';
-import { Button, Modal, Form, Select, Switch, Tag, Input } from 'antd';
+import { Button, Modal, Form, Select, Switch, Tag, Input, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import Delta from 'quill-delta';
 
@@ -36,6 +36,7 @@ const SaveNote: React.FC<SaveNoteProps> = (props) => {
       const res = await createTag({ name: inputValue })
       setTags([...tags, res])
     }
+    message.error('Tag already exists')
     setInputVisible(false)
     setInputValue('')
   };
@@ -86,7 +87,6 @@ const SaveNote: React.FC<SaveNoteProps> = (props) => {
           )}
           {inputVisible && (
             <Input
-              // ref={this.saveInputRef}
               type="text"
               size="small"
               style={{ width: 78 }}

@@ -4,7 +4,7 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html'; 
 import Interweave from 'interweave';
 import { Card, Dropdown, Menu, message, Avatar, Divider, Tag, Select } from 'antd';
-import { PlusCircleFilled } from '@ant-design/icons';
+import { PlusCircleFilled, LockOutlined } from '@ant-design/icons';
 
 import { useModel } from 'umi';
 import { EditOutlined, EllipsisOutlined } from '@ant-design/icons';
@@ -91,8 +91,10 @@ const NoteCard: React.FC<NoteCardProps> = (props) => {
           >
             {tag.name}
           </Tag>
-        })}
+          })
+        }
       />
+      {props.private ? <LockOutlined />: null}
       <Divider />
       <Interweave key={props.noteId} content={html} transform={transform} />
     </Card>
@@ -138,6 +140,8 @@ const Notes: React.FC<{}> = () => {
     await deleteNote(id)
     const newNotes = notes.filter(note => note.id !== id)
     setInitialState({ ...initialState, notes: newNotes })
+    setFilterNotes(newNotes)
+    message.success('Note deleted!');
   }
 
   async function saveUpdateNote(saveParams: Object, tags: Array<Object>, noteId: number) {
@@ -156,11 +160,12 @@ const Notes: React.FC<{}> = () => {
     }
     if (_.get(updatedNote, 'id')) {
       notes.map(note => {
-        if (note.id === updatedNote.id)
+        if (note.id === updatedNote.id) {
           Object.assign(note, saveParams)
           Object.assign(note, tags)
+        }
       })
-      setInitialState({...initialState, notes: notes})
+      setInitialState({ ...initialState, notes: notes })
       message.success('Note updated!');
       return
     }
@@ -178,7 +183,8 @@ const Notes: React.FC<{}> = () => {
           res.tags = newTags.tags
         }
         notes.unshift(res)
-        setInitialState({...initialState, notes: notes})
+        setInitialState({ ...initialState, notes: notes })
+        setNoteContents(new Delta())
         message.success('Note saved!');
         return
       }
@@ -191,7 +197,7 @@ const Notes: React.FC<{}> = () => {
 
   const { Option } = Select;
 
-  const handleChange = (tagName: Array<String>) => {
+  const handleTagFilterChange = (tagName: Array<String>) => {
     if (tagName.length === 0) {
       setFilterNotes(notes)
       return
@@ -212,12 +218,13 @@ const Notes: React.FC<{}> = () => {
         style={{ 'width': '25%', 'marginBottom': '25px', 'textAlign': 'center' }}
         allowClear
         placeholder="Filter By Tag"
-        onChange={handleChange}
+        onChange={handleTagFilterChange}
       >
         {tags.map(tag => {
           return (<Option key={tag.id} value={tag.name}>{tag.name}</Option>)
         })}
       </Select>
+
       <br />
 
       <Card
